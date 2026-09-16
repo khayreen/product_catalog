@@ -19,20 +19,30 @@ class ProductListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Products')),
+      appBar: AppBar(
+        title: const Text('Products'),
+        // The field lives in the AppBar, OUTSIDE the BlocBuilder below, so
+        // it is not rebuilt on every state change — which would drop the
+        // keyboard focus mid-word.
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(64),
+          child: _SearchField(),
+        ),
+      ),
       body: BlocBuilder<ProductListCubit, ProductListState>(
         builder: (context, state) {
           return switch (state) {
             ProductListLoading() => const LoadingView(),
             ProductListError(:final failure) => ErrorView(
-              message: failure.message,
-              onRetry: () => context.read<ProductListCubit>().loadFirstPage(),
-            ),
+                message: failure.message,
+                onRetry: () =>
+                    context.read<ProductListCubit>().loadFirstPage(),
+              ),
             ProductListEmpty(:final query) => EmptyView(
-              message: query.isEmpty
-                  ? 'No products to show yet.'
-                  : 'No products match "$query".',
-            ),
+                message: query.isEmpty
+                    ? 'No products to show yet.'
+                    : 'No products match "$query".',
+              ),
             ProductListSuccess() => _ProductListView(state: state),
           };
         },
@@ -41,10 +51,69 @@ class ProductListPage extends StatelessWidget {
   }
 }
 
+/// The search box.
+///
+/// Deliberately thin: it forwards each keystroke to the cubit and nothing
+/// more. The debouncing and the cancelling of superseded requests both live
+/// in [ProductListCubit], so this widget has no timing logic to get wrong.
+class _SearchField extends StatefulWidget {
+  const _SearchField();
+
+  @override
+  State<_SearchField> createState() => _SearchFieldState();
+}
+
+class _SearchFieldState extends State<_SearchField> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: TextField(
+        controller: _controller,
+        textInputAction: TextInputAction.search,
+        onChanged: context.read<ProductListCubit>().onQueryChanged,
+        decoration: InputDecoration(
+          hintText: 'Search products',
+          prefixIcon: const Icon(Icons.search),
+          // Only offer the clear button when there is something to clear.
+          suffixIcon: ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _controller,
+            builder: (context, value, child) {
+              if (value.text.isEmpty) return const SizedBox.shrink();
+              return IconButton(
+                icon: const Icon(Icons.clear),
+                tooltip: 'Clear search',
+                onPressed: () {
+                  _controller.clear();
+                  context.read<ProductListCubit>().onQueryChanged('');
+                },
+              );
+            },
+          ),
+          isDense: true,
+          filled: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// The success state's list, which owns the scroll controller that drives
 /// pagination.
 ///
-/// Stateful only because a ScrollController must be created and disposed
+/// Stateful only because a [ScrollController] must be created and disposed
 /// with the widget; the products themselves still come from the cubit.
 class _ProductListView extends StatefulWidget {
   const _ProductListView({required this.state});
@@ -77,8 +146,8 @@ class _ProductListViewState extends State<_ProductListView> {
   /// Fires on every scroll frame — dozens of times a second.
   ///
   /// That is deliberate and safe: the widget stays naive and asks every
-  /// frame, while the cubit holds the guards that decide whether the
-  /// request is worth making.
+  /// frame, while [ProductListCubit.loadNextPage] holds the guards that
+  /// decide whether the request is actually worth making.
   void _onScroll() {
     if (!_controller.hasClients) return;
 
@@ -109,8 +178,8 @@ class _ProductListViewState extends State<_ProductListView> {
 }
 
 /// The second loading moment: a small indicator under the products, while
-/// the list stays on screen. Deliberately nothing like the full-screen
-/// LoadingView used for the first fetch.
+/// the list stays on screen and scrollable. Deliberately nothing like the
+/// full-screen [LoadingView] used for the first fetch.
 class _LoadMoreFooter extends StatelessWidget {
   const _LoadMoreFooter();
 
