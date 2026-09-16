@@ -16,6 +16,7 @@ flutter run
 No API key or `.env` file is needed — DummyJSON is public.
 
 ```bash
+flutter test       # unit tests
 flutter analyze    # static analysis, currently clean
 ```
 
@@ -121,12 +122,26 @@ for little gain, so `fromJson` is written by hand.
 converting to `double`. Dart decodes `5` as `int` and `9.99` as `double`, so
 `as double` would throw at runtime on a whole-number price.
 
+## Tests
+
+`test/data/product_repository_test.dart` covers the repository — the layer
+holding the architectural decisions:
+
+- **endpoint routing**: an empty query browses, a non-empty query searches, and
+  `skip` passes through unchanged — the proof that search and browse share one
+  paging path
+- **failure translation**: connection error → `NetworkFailure`, HTTP error →
+  `ServerFailure` carrying the status code, parse error → `UnknownFailure`
+- **a cancellation is `RequestCancelled` and not a `Failure`** — if that ever
+  regressed, every keystroke during a search would flash an error state
+
+The whole class is testable with no network and no HTTP stubbing because
+`ProductApi` takes its `Dio` through the constructor and the repository takes
+its `ProductApi` the same way.
+
 ## Not finished
 
-- [ ] No unit tests. The repository is the natural place to start — it takes
-      its `ProductApi` through the constructor, so it can be tested with a mock
-      and no network.
-- [ ] No pull-to-refresh.
+- [ ] Only the data layer is tested; no widget tests.
 - [ ] A failed additional page fails silently: the footer spinner stops and
       nothing is said. It should show a message with a retry.
 - [ ] Prices are formatted with a hard-coded `$`. Should use `intl` and the
@@ -150,4 +165,4 @@ verified each feature worked before committing it.
 
 I understand the code and the reasoning behind each decision documented
 above. The parts I would most want to revisit are the silent failure on an
-additional page, and the missing test coverage on the repository.
+additional page, and the lack of widget tests above the data layer.

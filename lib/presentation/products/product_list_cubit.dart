@@ -27,9 +27,13 @@ class ProductListCubit extends Cubit<ProductListState> {
 
   /// Loads the first page for the current query. Also the retry action —
   /// which is why retry genuinely re-runs the request.
-  Future<void> loadFirstPage() async {
+  ///
+  /// [showLoading] is false for a pull-to-refresh: the RefreshIndicator is
+  /// already showing its own spinner, and emitting ProductListLoading would
+  /// replace the list — and the indicator with it — mid-gesture.
+  Future<void> loadFirstPage({bool showLoading = true}) async {
     final token = _beginRequest();
-    emit(const ProductListLoading());
+    if (showLoading) emit(const ProductListLoading());
 
     try {
       final page = await _repository.loadPage(
@@ -93,6 +97,13 @@ class ProductListCubit extends Cubit<ProductListState> {
       emit(current.copyWith(isLoadingMore: false));
     }
   }
+
+  /// Pull-to-refresh: reload page one, keeping the current list on screen
+  /// while it happens.
+  ///
+  /// Returns the future the RefreshIndicator awaits, so its spinner stays
+  /// until the new page has actually arrived.
+  Future<void> refresh() => loadFirstPage(showLoading: false);
 
   /// Called on every keystroke. Each one cancels the pending timer and
   /// starts another, so a burst of typing produces exactly one request.

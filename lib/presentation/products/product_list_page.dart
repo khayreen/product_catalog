@@ -163,28 +163,36 @@ class _ProductListViewState extends State<_ProductListView> {
     final products = widget.state.products;
     final showFooter = widget.state.isLoadingMore;
 
-    return ListView.separated(
-      controller: _controller,
-      itemCount: products.length + (showFooter ? 1 : 0),
-      separatorBuilder: (context, index) =>
-          const Divider(height: 1, indent: 88),
-      itemBuilder: (context, index) {
-        if (index >= products.length) {
-          return const _LoadMoreFooter();
-        }
+    return RefreshIndicator(
+      // Returning the cubit's future keeps the spinner turning until the
+      // new page has actually arrived, rather than snapping away instantly.
+      onRefresh: () => context.read<ProductListCubit>().refresh(),
+      child: ListView.separated(
+        controller: _controller,
+        // Lets the gesture start even when the list is too short to scroll,
+        // which is the case after a narrow search.
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: products.length + (showFooter ? 1 : 0),
+        separatorBuilder: (context, index) =>
+            const Divider(height: 1, indent: 88),
+        itemBuilder: (context, index) {
+          if (index >= products.length) {
+            return const _LoadMoreFooter();
+          }
 
-        final product = products[index];
-        return ProductTile(
-          product: product,
-          // The route carries only the id — the detail screen fetches its
-          // own data rather than trusting what the list happens to hold.
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => ProductDetailPage(productId: product.id),
+          final product = products[index];
+          return ProductTile(
+            product: product,
+            // The route carries only the id — the detail screen fetches its
+            // own data rather than trusting what the list happens to hold.
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ProductDetailPage(productId: product.id),
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
