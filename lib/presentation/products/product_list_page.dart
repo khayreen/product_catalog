@@ -123,29 +123,47 @@ class _CategoryBarState extends State<_CategoryBar> {
       builder: (context, categories) {
         if (categories.isEmpty) return const SizedBox.shrink();
 
-        return SizedBox(
-          height: 52,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            itemCount: categories.length + 1,
-            separatorBuilder: (context, index) => const SizedBox(width: 8),
-            itemBuilder: (context, index) {
-              // Index 0 is the "All" chip; the rest are real categories.
-              final category = index == 0 ? null : categories[index - 1];
-              final slug = category?.slug;
-
-              return FilterChip(
-                label: Text(category?.name ?? 'All'),
-                selected: _selected == slug,
-                onSelected: (_) {
-                  setState(() => _selected = slug);
-                  context.read<ProductListCubit>().setCategory(slug);
-                },
-              );
-            },
+        // Built eagerly into a Row rather than lazily by a ListView.
+        // There are only ~25 chips, and a Material FilterChip is expensive
+        // enough to build that constructing them mid-scroll shows as jank.
+        // Building once and scrolling a static Row is visibly smoother.
+        return RepaintBoundary(
+          child: SizedBox(
+            height: 52,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              // A little resistance at the ends reads better than a hard
+              // stop when the row is dragged past its extent.
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              child: Row(
+                children: [
+                  _chip(context, null, 'All'),
+                  for (final category in categories) ...[
+                    const SizedBox(width: 8),
+                    _chip(context, category.slug, category.name),
+                  ],
+                ],
+              ),
+            ),
           ),
         );
+      },
+    );
+  }
+
+  Widget _chip(BuildContext context, String? slug, String label) {
+    return FilterChip(
+      label: Text(label),
+      selected: _selected == slug,
+      // The chip's own ink splash is enough feedback; the check mark makes
+      // the row jump sideways as the chip widens.
+      showCheckmark: false,
+      onSelected: (_) {
+        setState(() => _selected = slug);
+        context.read<ProductListCubit>().setCategory(slug);
       },
     );
   }
