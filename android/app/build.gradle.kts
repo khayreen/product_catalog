@@ -8,7 +8,10 @@ plugins {
 android {
     namespace = "com.izzah.product_catalog"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Pinned above the Flutter default because path_provider_android (a
+    // transitive dependency of cached_network_image) requires this NDK.
+    // Without it every build prints a version-mismatch warning.
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
