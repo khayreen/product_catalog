@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../detail/product_detail_page.dart';
 import '../widgets/empty_view.dart';
 import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
@@ -171,7 +172,18 @@ class _ProductListViewState extends State<_ProductListView> {
         if (index >= products.length) {
           return const _LoadMoreFooter();
         }
-        return ProductTile(product: products[index]);
+
+        final product = products[index];
+        return ProductTile(
+          product: product,
+          // The route carries only the id — the detail screen fetches its
+          // own data rather than trusting what the list happens to hold.
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => ProductDetailPage(productId: product.id),
+            ),
+          ),
+        );
       },
     );
   }
