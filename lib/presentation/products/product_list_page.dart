@@ -163,7 +163,13 @@ class _ProductListViewState extends State<_ProductListView> {
   /// How close to the bottom, in pixels, before the next page is requested.
   static const double _loadMoreThreshold = 400;
 
+  /// How far down before the scroll-to-top button is worth offering —
+  /// roughly two screens, so it never appears during ordinary browsing.
+  static const double _showTopButtonAfter = 1200;
+
   final ScrollController _controller = ScrollController();
+
+  bool _showTopButton = false;
 
   @override
   void initState() {
@@ -190,6 +196,22 @@ class _ProductListViewState extends State<_ProductListView> {
     if (position.pixels >= position.maxScrollExtent - _loadMoreThreshold) {
       context.read<ProductListCubit>().loadNextPage();
     }
+
+    // Only rebuild when the answer actually changes — this runs on every
+    // scroll frame, so calling setState unconditionally would rebuild the
+    // whole list dozens of times a second.
+    final shouldShow = position.pixels > _showTopButtonAfter;
+    if (shouldShow != _showTopButton) {
+      setState(() => _showTopButton = shouldShow);
+    }
+  }
+
+  void _scrollToTop() {
+    _controller.animateTo(
+      0,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -197,36 +219,56 @@ class _ProductListViewState extends State<_ProductListView> {
     final products = widget.state.products;
     final showFooter = widget.state.isLoadingMore;
 
-    return RefreshIndicator(
-      // Returning the cubit's future keeps the spinner turning until the
-      // new page has actually arrived, rather than snapping away instantly.
-      onRefresh: () => context.read<ProductListCubit>().refresh(),
-      child: ListView.separated(
+    return Stack(
+      children: [
+        RefreshIndicator(
+          // Returning the cubit's future keeps the spinner turning until the
+          // new page has actually arrived, rather than snapping away.
+          onRefresh: () => context.read<ProductListCubit>().refresh(),
+          child: ListView.separated(
         controller: _controller,
-        // Lets the gesture start even when the list is too short to scroll,
-        // which is the case after a narrow search.
-        physics: const AlwaysScrollableScrollPhysics(),
-        itemCount: products.length + (showFooter ? 1 : 0),
-        separatorBuilder: (context, index) =>
-            const Divider(height: 1, indent: 88),
-        itemBuilder: (context, index) {
-          if (index >= products.length) {
-            return const _LoadMoreFooter();
-          }
+            // Lets the gesture start even when the list is too short to
+            // scroll, which is the case after a narrow search.
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: products.length + (showFooter ? 1 : 0),
+            separatorBuilder: (context, index) =>
+                const Divider(height: 1, indent: 88),
+            itemBuilder: (context, index) {
+              if (index >= products.length) {
+                return const _LoadMoreFooter();
+              }
 
-          final product = products[index];
-          return ProductTile(
-            product: product,
-            // The route carries only the id — the detail screen fetches its
-            // own data rather than trusting what the list happens to hold.
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => ProductDetailPage(productId: product.id),
-              ),
+              final product = products[index];
+              return ProductTile(
+                product: product,
+                // The route carries only the id — the detail screen fetches
+                // its own data rather than trusting what the list holds.
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ProductDetailPage(productId: product.id),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        // Appears only once scrolling far enough that reaching the top by
+        // hand would be tedious — 194 products is a long way back.
+        Positioned(
+          right: 16,
+          bottom: 16,
+          child: AnimatedScale(
+            scale: _showTopButton ? 1 : 0,
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutBack,
+            child: FloatingActionButton.small(
+              onPressed: _scrollToTop,
+              tooltip: 'Back to top',
+              child: const Icon(Icons.arrow_upward_rounded),
             ),
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 }

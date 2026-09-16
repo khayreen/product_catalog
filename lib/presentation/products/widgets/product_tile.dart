@@ -44,13 +44,34 @@ class ProductTile extends StatelessWidget {
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
-        // TODO(izzah): format per locale with `intl` instead of a hard $.
-        child: Text(
-          '\$${product.price.toStringAsFixed(2)}',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.w600,
-          ),
+        child: Row(
+          children: [
+            // TODO(izzah): format per locale with `intl` instead of a hard $.
+            Text(
+              '\$${product.price.toStringAsFixed(2)}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Rating belongs in the list, not only on the detail screen: it
+            // is the signal people scan alongside price when deciding what
+            // to open, and it is already in the response.
+            Icon(
+              Icons.star_rounded,
+              size: 15,
+              color: theme.colorScheme.tertiary,
+            ),
+            const SizedBox(width: 2),
+            Text(
+              product.rating.toStringAsFixed(1),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
