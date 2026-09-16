@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,6 +32,7 @@ class ProductCatalogApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Product Catalog',
         debugShowCheckedModeBanner: false,
+        scrollBehavior: const _AppScrollBehavior(),
         theme: ThemeData(
           useMaterial3: true,
           colorSchemeSeed: const Color(0xFF2A36C9),
@@ -51,4 +53,23 @@ class ProductCatalogApp extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Lets a mouse and a trackpad drag scrollable areas, not just touch.
+///
+/// Flutter's default only accepts touch and stylus drags. That is right on a
+/// physical phone, but an emulator delivers your drags as mouse events — so
+/// the horizontal category bar looks frozen there, and on the web build,
+/// while working perfectly on a real device. Widening the set makes the app
+/// behave the same everywhere it runs.
+class _AppScrollBehavior extends MaterialScrollBehavior {
+  const _AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => const <PointerDeviceKind>{
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
 }
