@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/api_client.dart';
 import 'data/product_api.dart';
 import 'data/product_repository.dart';
+import 'presentation/products/category_cubit.dart';
 import 'presentation/products/product_list_cubit.dart';
 import 'presentation/products/product_list_page.dart';
 
@@ -34,8 +35,17 @@ class ProductCatalogApp extends StatelessWidget {
           useMaterial3: true,
           colorSchemeSeed: const Color(0xFF2A36C9),
         ),
-        home: BlocProvider(
-          create: (_) => ProductListCubit(repository)..loadFirstPage(),
+        home: MultiBlocProvider(
+          providers: [
+            // `..loadFirstPage()` fires the request as the cubit is created,
+            // so the screen opens in its loading state rather than blank.
+            BlocProvider(
+              create: (_) => ProductListCubit(repository)..loadFirstPage(),
+            ),
+            // Loaded once for the session; the filter bar hides itself until
+            // the categories arrive.
+            BlocProvider(create: (_) => CategoryCubit(repository)..load()),
+          ],
           child: const ProductListPage(),
         ),
       ),

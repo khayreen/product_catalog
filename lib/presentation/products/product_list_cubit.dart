@@ -24,6 +24,14 @@ class ProductListCubit extends Cubit<ProductListState> {
   Timer? _debounce;
   CancelToken? _inFlight;
   String _query = '';
+  String? _category;
+  bool _sortByRating = false;
+
+  /// The category currently filtered to, or null for the whole catalogue.
+  String? get category => _category;
+
+  /// Whether the list is sorted by rating, highest first.
+  bool get sortByRating => _sortByRating;
 
   /// Loads the first page for the current query. Also the retry action —
   /// which is why retry genuinely re-runs the request.
@@ -46,6 +54,8 @@ class ProductListCubit extends Cubit<ProductListState> {
       final page = await _repository.loadPage(
         skip: 0,
         query: _query,
+        category: _category,
+        sortByRating: _sortByRating,
         cancelToken: token,
       );
 
@@ -82,6 +92,8 @@ class ProductListCubit extends Cubit<ProductListState> {
       final page = await _repository.loadPage(
         skip: current.products.length,
         query: _query,
+        category: _category,
+        sortByRating: _sortByRating,
       );
 
       if (isClosed) return;
@@ -124,6 +136,26 @@ class ProductListCubit extends Cubit<ProductListState> {
     // new ones are fetched, so the list does not flash on every keystroke.
     _debounce =
         Timer(_debounceDuration, () => loadFirstPage(showLoading: false));
+  }
+
+  /// Filters to one category, or clears the filter when [slug] is null.
+  ///
+  /// Goes straight to the network rather than filtering what is already
+  /// loaded: only the first page is in memory, so filtering locally would
+  /// search 20 products out of 194 and quietly miss the rest.
+  void setCategory(String? slug) {
+    if (slug == _category) return;
+
+    _category = slug;
+    loadFirstPage(showLoading: false);
+  }
+
+  /// Sorts by rating, highest first, or returns to the API's own order.
+  void setSortByRating({required bool enabled}) {
+    if (enabled == _sortByRating) return;
+
+    _sortByRating = enabled;
+    loadFirstPage(showLoading: false);
   }
 
   /// Cancels any in-flight request and returns a fresh token.

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/models/product_category.dart';
 import '../detail/product_detail_page.dart';
 import '../widgets/empty_view.dart';
 import '../widgets/error_view.dart';
 import '../widgets/loading_view.dart';
+import 'category_cubit.dart';
 import 'product_list_cubit.dart';
 import 'product_list_state.dart';
 import 'widgets/product_tile.dart';
@@ -22,6 +24,7 @@ class ProductListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Products'),
+        actions: const [_SortAction()],
         // The field lives in the AppBar, OUTSIDE the BlocBuilder below, so
         // it is not rebuilt on every state change — which would drop the
         // keyboard focus mid-word.
@@ -33,24 +36,117 @@ class ProductListPage extends StatelessWidget {
           ),
         ),
       ),
-      body: BlocBuilder<ProductListCubit, ProductListState>(
-        builder: (context, state) {
-          return switch (state) {
-            ProductListLoading() => const LoadingView(),
-            ProductListError(:final failure) => ErrorView(
-                message: failure.message,
-                onRetry: () =>
-                    context.read<ProductListCubit>().loadFirstPage(),
-              ),
-            ProductListEmpty(:final query) => EmptyView(
-                message: query.isEmpty
-                    ? 'No products to show yet.'
-                    : 'No products match "$query".',
-              ),
-            ProductListSuccess() => _ProductListView(state: state),
-          };
-        },
+      // The filter bar sits outside the BlocBuilder so the chips stay put
+      // while the list below them swaps between states.
+      body: Column(
+        children: [
+          const _CategoryBar(),
+          Expanded(
+            child: BlocBuilder<ProductListCubit, ProductListState>(
+              builder: (context, state) {
+                return switch (state) {
+                  ProductListLoading() => const LoadingView(),
+                  ProductListError(:final failure) => ErrorView(
+                      message: failure.message,
+                      onRetry: () =>
+                          context.read<ProductListCubit>().loadFirstPage(),
+                    ),
+                  ProductListEmpty(:final query) => EmptyView(
+                      message: query.isEmpty
+                          ? 'Nothing here. Try another category.'
+                          : 'No products match "$query".',
+                    ),
+                  ProductListSuccess() => _ProductListView(state: state),
+                };
+              },
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+/// Sorts the list by rating, highest first.
+///
+/// Its own widget so toggling it rebuilds an icon rather than the screen.
+class _SortAction extends StatefulWidget {
+  const _SortAction();
+
+  @override
+  State<_SortAction> createState() => _SortActionState();
+}
+
+class _SortActionState extends State<_SortAction> {
+  bool _enabled = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return IconButton(
+      tooltip: _enabled ? 'Sorted by rating' : 'Sort by rating',
+      isSelected: _enabled,
+      icon: const Icon(Icons.star_border_rounded),
+      selectedIcon: Icon(
+        Icons.star_rounded,
+        color: theme.colorScheme.tertiary,
+      ),
+      onPressed: () {
+        setState(() => _enabled = !_enabled);
+        context
+            .read<ProductListCubit>()
+            .setSortByRating(enabled: _enabled);
+      },
+    );
+  }
+}
+
+/// A horizontally scrolling row of category chips, with "All" first.
+///
+/// Renders nothing at all until the categories arrive, and nothing ever if
+/// they fail — the catalogue still works without it, so an empty bar is
+/// better than an error in its place.
+class _CategoryBar extends StatefulWidget {
+  const _CategoryBar();
+
+  @override
+  State<_CategoryBar> createState() => _CategoryBarState();
+}
+
+class _CategoryBarState extends State<_CategoryBar> {
+  String? _selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CategoryCubit, List<ProductCategory>>(
+      builder: (context, categories) {
+        if (categories.isEmpty) return const SizedBox.shrink();
+
+        return SizedBox(
+          height: 52,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            itemCount: categories.length + 1,
+            separatorBuilder: (context, index) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              // Index 0 is the "All" chip; the rest are real categories.
+              final category = index == 0 ? null : categories[index - 1];
+              final slug = category?.slug;
+
+              return FilterChip(
+                label: Text(category?.name ?? 'All'),
+                selected: _selected == slug,
+                onSelected: (_) {
+                  setState(() => _selected = slug);
+                  context.read<ProductListCubit>().setCategory(slug);
+                },
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

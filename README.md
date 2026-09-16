@@ -2,7 +2,7 @@
 
 A small Flutter product catalog built against the public
 [DummyJSON](https://dummyjson.com) API: a paginated product list, a detail
-screen, and debounced search.
+screen, debounced search, category filtering and sort by rating.
 
 ## Running it
 
@@ -31,10 +31,10 @@ Three layers, each depending only on the one below it:
 lib/
   core/            api_client.dart          Dio instance: base URL, timeouts
                    failure.dart             the error types the UI may see
-  data/            models/                  Product, ProductPage
-                   product_api.dart         the three endpoints, nothing else
-                   product_repository.dart  paging policy + error translation
-  presentation/    products/                list: state, cubit, page, tile
+  data/            models/                  Product, ProductPage, ProductCategory
+                   product_api.dart         the endpoints, nothing else
+                   product_repository.dart  routing, paging, error translation
+  presentation/    products/                list: state, cubits, page, tile
                    detail/                  detail: state, cubit, page
                    widgets/                 loading / error / empty, shared
 ```
@@ -95,13 +95,17 @@ perfectly well feel broken.
 
 ## Decisions and trade-offs
 
-**Search is server-side.** `/products/search` returns the same
-`{products, total, skip, limit}` envelope as the list endpoint, so
-`ProductRepository.loadPage` picks the endpoint from the query and everything
-above it paginates identically whether the user is browsing or searching — one
-code path, one scroll controller. Client-side filtering would only have
-searched the products already loaded, which for a paginated list is not really
-search.
+**Search, category filter and sort are all server-side, through one method.**
+`/products`, `/products/search` and `/products/category/{slug}` all return the
+same `{products, total, skip, limit}` envelope and all accept `sortBy` and
+`order`. So `ProductRepository.loadPage` picks the endpoint and everything
+above it paginates identically no matter which is running — one code path, one
+scroll controller, one set of guards.
+
+Doing any of it client-side would only have filtered the 20 products already
+loaded out of 194, which is not really filtering. A search overrides an active
+category: searching reads as looking across the whole catalogue rather than
+within the current filter.
 
 **Debounce and cancellation are separate mechanisms.** A 400 ms debounce
 controls how many requests are sent. Cancellation controls which answer wins: a
@@ -137,7 +141,8 @@ converting to `double`. Dart decodes `5` as `int` and `9.99` as `double`, so
 `test/data/product_repository_test.dart` covers the repository — the layer
 holding the architectural decisions:
 
-- **endpoint routing**: an empty query browses, a non-empty query searches, and
+- **endpoint routing**: an empty query browses, a category filters, a query
+  searches (and overrides the filter), sorting adds `sortBy`/`order`, and
   `skip` passes through unchanged — the proof that search and browse share one
   paging path
 - **failure translation**: connection error → `NetworkFailure`, HTTP error →

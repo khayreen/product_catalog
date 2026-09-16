@@ -42,6 +42,8 @@ void main() {
       () => api.fetchProducts(
         limit: any(named: 'limit'),
         skip: any(named: 'skip'),
+        sortBy: any(named: 'sortBy'),
+        order: any(named: 'order'),
         cancelToken: any(named: 'cancelToken'),
       ),
     ).thenAnswer((_) async => page);
@@ -53,6 +55,21 @@ void main() {
         query: any(named: 'query'),
         limit: any(named: 'limit'),
         skip: any(named: 'skip'),
+        sortBy: any(named: 'sortBy'),
+        order: any(named: 'order'),
+        cancelToken: any(named: 'cancelToken'),
+      ),
+    ).thenAnswer((_) async => page);
+  }
+
+  void stubCategory() {
+    when(
+      () => api.fetchCategoryProducts(
+        category: any(named: 'category'),
+        limit: any(named: 'limit'),
+        skip: any(named: 'skip'),
+        sortBy: any(named: 'sortBy'),
+        order: any(named: 'order'),
         cancelToken: any(named: 'cancelToken'),
       ),
     ).thenAnswer((_) async => page);
@@ -63,6 +80,8 @@ void main() {
       () => api.fetchProducts(
         limit: any(named: 'limit'),
         skip: any(named: 'skip'),
+        sortBy: any(named: 'sortBy'),
+        order: any(named: 'order'),
         cancelToken: any(named: 'cancelToken'),
       ),
     ).thenThrow(error);
@@ -123,6 +142,73 @@ void main() {
           cancelToken: any(named: 'cancelToken'),
         ),
       );
+    });
+
+    test('filters by category when one is selected', () async {
+      stubCategory();
+
+      await repository.loadPage(skip: 20, category: 'smartphones');
+
+      verify(
+        () => api.fetchCategoryProducts(
+          category: 'smartphones',
+          limit: ProductRepository.pageSize,
+          skip: 20,
+          sortBy: null,
+          order: null,
+          cancelToken: null,
+        ),
+      ).called(1);
+    });
+
+    test('a search overrides an active category filter', () async {
+      stubSearch();
+      stubCategory();
+
+      await repository.loadPage(
+        skip: 0,
+        query: 'phone',
+        category: 'smartphones',
+      );
+
+      // Searching is understood as looking across the whole catalogue, not
+      // within the current filter.
+      verify(
+        () => api.searchProducts(
+          query: 'phone',
+          limit: ProductRepository.pageSize,
+          skip: 0,
+          sortBy: null,
+          order: null,
+          cancelToken: null,
+        ),
+      ).called(1);
+      verifyNever(
+        () => api.fetchCategoryProducts(
+          category: any(named: 'category'),
+          limit: any(named: 'limit'),
+          skip: any(named: 'skip'),
+          sortBy: any(named: 'sortBy'),
+          order: any(named: 'order'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      );
+    });
+
+    test('sorting by rating passes sortBy and order through', () async {
+      stubBrowse();
+
+      await repository.loadPage(skip: 0, sortByRating: true);
+
+      verify(
+        () => api.fetchProducts(
+          limit: ProductRepository.pageSize,
+          skip: 0,
+          sortBy: 'rating',
+          order: 'desc',
+          cancelToken: null,
+        ),
+      ).called(1);
     });
   });
 
