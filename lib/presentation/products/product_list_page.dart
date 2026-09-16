@@ -33,15 +33,97 @@ class ProductListPage extends StatelessWidget {
                   ? 'No products to show yet.'
                   : 'No products match "$query".',
             ),
-            ProductListSuccess(:final products) => ListView.separated(
-              itemCount: products.length,
-              separatorBuilder: (context, index) =>
-                  const Divider(height: 1, indent: 88),
-              itemBuilder: (context, index) =>
-                  ProductTile(product: products[index]),
-            ),
+            ProductListSuccess() => _ProductListView(state: state),
           };
         },
+      ),
+    );
+  }
+}
+
+/// The success state's list, which owns the scroll controller that drives
+/// pagination.
+///
+/// Stateful only because a ScrollController must be created and disposed
+/// with the widget; the products themselves still come from the cubit.
+class _ProductListView extends StatefulWidget {
+  const _ProductListView({required this.state});
+
+  final ProductListSuccess state;
+
+  @override
+  State<_ProductListView> createState() => _ProductListViewState();
+}
+
+class _ProductListViewState extends State<_ProductListView> {
+  /// How close to the bottom, in pixels, before the next page is requested.
+  static const double _loadMoreThreshold = 400;
+
+  final ScrollController _controller = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onScroll);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Fires on every scroll frame — dozens of times a second.
+  ///
+  /// That is deliberate and safe: the widget stays naive and asks every
+  /// frame, while the cubit holds the guards that decide whether the
+  /// request is worth making.
+  void _onScroll() {
+    if (!_controller.hasClients) return;
+
+    final position = _controller.position;
+    if (position.pixels >= position.maxScrollExtent - _loadMoreThreshold) {
+      context.read<ProductListCubit>().loadNextPage();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final products = widget.state.products;
+    final showFooter = widget.state.isLoadingMore;
+
+    return ListView.separated(
+      controller: _controller,
+      itemCount: products.length + (showFooter ? 1 : 0),
+      separatorBuilder: (context, index) =>
+          const Divider(height: 1, indent: 88),
+      itemBuilder: (context, index) {
+        if (index >= products.length) {
+          return const _LoadMoreFooter();
+        }
+        return ProductTile(product: products[index]);
+      },
+    );
+  }
+}
+
+/// The second loading moment: a small indicator under the products, while
+/// the list stays on screen. Deliberately nothing like the full-screen
+/// LoadingView used for the first fetch.
+class _LoadMoreFooter extends StatelessWidget {
+  const _LoadMoreFooter();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 20),
+      child: Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
       ),
     );
   }
