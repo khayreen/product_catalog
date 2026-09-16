@@ -77,11 +77,21 @@ The screen body is a single `switch` over that type. Because the class is
 sealed, the analyzer rejects the file if any state has no branch — a missing
 state is a build error rather than a blank screen found in review.
 
-`isLoadingMore` and `hasReachedEnd` are fields of the success state rather than
-states of their own: fetching page three is a success that happens to be busy.
-That keeps the list visible and scrollable while the footer spinner turns, and
-it is why the two loading moments look different — a centred spinner for the
-first fetch, a small footer indicator for later pages.
+`isLoadingMore`, `hasReachedEnd` and `isBusy` are fields of the success state
+rather than states of their own: fetching page three is a success that happens
+to be busy. That keeps the list visible and scrollable while it loads.
+
+There are **three loading moments**, and each gets its own treatment:
+
+| Moment | Treatment |
+|---|---|
+| First fetch | `ProductListLoading` — a centred spinner owning the screen |
+| Loading another page | `isLoadingMore` — a small footer indicator; the list stays |
+| Searching or refreshing with results already up | `isBusy` — a hairline bar under the search field; nothing moves |
+
+The third one matters more than it looks. Modelling it as `ProductListLoading`
+would replace the list on every keystroke, which makes a search that works
+perfectly well feel broken.
 
 ## Decisions and trade-offs
 

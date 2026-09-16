@@ -26,8 +26,11 @@ class ProductListPage extends StatelessWidget {
         // it is not rebuilt on every state change — which would drop the
         // keyboard focus mid-word.
         bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(64),
-          child: _SearchField(),
+          preferredSize: Size.fromHeight(66),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [_SearchField(), _BusyBar()],
+          ),
         ),
       ),
       body: BlocBuilder<ProductListCubit, ProductListState>(
@@ -109,6 +112,37 @@ class _SearchFieldState extends State<_SearchField> {
       ),
     );
   }
+}
+
+/// A hairline progress bar under the search field.
+///
+/// This is the third loading moment. The first fetch owns the whole screen;
+/// loading another page shows a footer spinner; searching while results are
+/// already up shows this, and nothing moves. Replacing the list on every
+/// keystroke made a working search feel broken.
+///
+/// It sits in its own BlocBuilder so that rebuilding it never rebuilds the
+/// text field above, which would drop the keyboard focus mid-word.
+class _BusyBar extends StatelessWidget {
+  const _BusyBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProductListCubit, ProductListState>(
+      buildWhen: (previous, current) => _isBusy(previous) != _isBusy(current),
+      builder: (context, state) {
+        return SizedBox(
+          height: 2,
+          child: _isBusy(state)
+              ? const LinearProgressIndicator(minHeight: 2)
+              : null,
+        );
+      },
+    );
+  }
+
+  static bool _isBusy(ProductListState state) =>
+      state is ProductListSuccess && state.isBusy;
 }
 
 /// The success state's list, which owns the scroll controller that drives

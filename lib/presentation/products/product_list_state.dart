@@ -46,21 +46,33 @@ class ProductListSuccess extends ProductListState {
     required this.products,
     this.isLoadingMore = false,
     this.hasReachedEnd = false,
+    this.isBusy = false,
   });
 
   final List<Product> products;
   final bool isLoadingMore;
   final bool hasReachedEnd;
 
+  /// A new first page is on its way — a search, or a refresh — while these
+  /// products stay on screen.
+  ///
+  /// The third loading moment, and it needs its own treatment: replacing the
+  /// list with a spinner on every keystroke makes a working search feel
+  /// broken. So the results stay put and a thin bar under the search field
+  /// carries the feedback instead.
+  final bool isBusy;
+
   ProductListSuccess copyWith({
     List<Product>? products,
     bool? isLoadingMore,
     bool? hasReachedEnd,
+    bool? isBusy,
   }) {
     return ProductListSuccess(
       products: products ?? this.products,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
+      isBusy: isBusy ?? this.isBusy,
     );
   }
 }
