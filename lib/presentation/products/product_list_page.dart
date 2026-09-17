@@ -133,11 +133,9 @@ class _CategoryBarState extends State<_CategoryBar> {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              // A little resistance at the ends reads better than a hard
-              // stop when the row is dragged past its extent.
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
+              // Platform default physics on purpose — clamping with an edge
+              // glow on Android — so this row feels the same as the product
+              // list below it rather than rubber-banding like iOS.
               child: Row(
                 children: [
                   _chip(context, null, 'All'),
