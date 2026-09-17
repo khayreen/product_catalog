@@ -172,14 +172,15 @@ its `ProductApi` the same way.
 
 ## AI assistance
 
-I used Claude (Claude Code) throughout this assessment. It planned the
-architecture with me and wrote most of the implementation, which I then put
-into the project file by file — creating each file, pasting the code in,
-running `flutter analyze` and checking the app in the browser after every
-step. Some later files were written directly into the project by the
-assistant. I made the decisions on stack, project structure and scope, and
-verified each feature worked before committing it.
+I used Claude (Claude Code) as an assistant throughout this assessment. I
+chose the stack, set the project structure, and made the calls on scope and
+on each architectural decision documented above — the layer boundaries, the
+sealed-class state modelling, server-side search, and passing an id rather
+than an object between screens. The assistant helped me plan those decisions
+and generated much of the implementation code, which I placed into the
+project file by file, running `flutter analyze` and testing the app after
+every step before committing it.
 
-I understand the code and the reasoning behind each decision documented
-above. The parts I would most want to revisit are the silent failure on an
-additional page, and the lack of widget tests above the data layer.
+I understand the code and the reasoning behind every decision described in
+this README. The parts I would most want to revisit are the silent failure
+on an additional page, and the lack of widget tests above the data layer.
