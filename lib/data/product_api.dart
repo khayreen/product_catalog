@@ -6,7 +6,7 @@ import 'models/product_page.dart';
 
 /// A thin wrapper over the DummyJSON HTTP endpoints.
 ///
-/// This class knows about URLs, query parameters and response envelopes —
+/// This class knows about URLs, query parameters and response envelopes -
 /// and nothing else. No paging policy, no caching, no translating failures
 /// into something the UI can show. Those decisions belong to the repository
 /// above it, which is what keeps this file boring enough to trust.
@@ -89,7 +89,7 @@ class ProductApi {
 
   /// `GET /products/category/{slug}`
   ///
-  /// Same envelope again, with `total` scoped to the category — so a
+  /// Same envelope again, with `total` scoped to the category - so a
   /// filtered list paginates and terminates exactly like an unfiltered one.
   Future<ProductPage> fetchCategoryProducts({
     required String category,
@@ -114,7 +114,7 @@ class ProductApi {
 
   /// `GET /products/categories`
   ///
-  /// A bare JSON array rather than an envelope — the one endpoint here that
+  /// A bare JSON array rather than an envelope - the one endpoint here that
   /// does not follow the pattern.
   Future<List<ProductCategory>> fetchCategories({
     CancelToken? cancelToken,

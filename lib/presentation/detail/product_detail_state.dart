@@ -6,7 +6,7 @@ import '../../data/models/product.dart';
 /// Note there is no empty state here, and that is a decision rather than an
 /// omission: a request for one product either returns it or fails. "Empty"
 /// is only meaningful for a collection, so modelling it would mean carrying
-/// a case that can never occur — and the exhaustive `switch` would force
+/// a case that can never occur - and the exhaustive `switch` would force
 /// the screen to render something for it.
 sealed class ProductDetailState {
   const ProductDetailState();

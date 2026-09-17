@@ -11,8 +11,8 @@ import 'product_list_state.dart';
 /// Drives the product list: which page to ask for next, what the user is
 /// searching for, and which state the screen should be in.
 ///
-/// Both search mechanics live here rather than in the widget — the debounce
-/// timer and the cancellation token — so the text field stays a plain
+/// Both search mechanics live here rather than in the widget - the debounce
+/// timer and the cancellation token - so the text field stays a plain
 /// TextField with an onChanged.
 class ProductListCubit extends Cubit<ProductListState> {
   ProductListCubit(this._repository) : super(const ProductListLoading());
@@ -33,11 +33,11 @@ class ProductListCubit extends Cubit<ProductListState> {
   /// Whether the list is sorted by rating, highest first.
   bool get sortByRating => _sortByRating;
 
-  /// Loads the first page for the current query. Also the retry action —
+  /// Loads the first page for the current query. Also the retry action -
   /// which is why retry genuinely re-runs the request.
   ///
   /// [showLoading] is false when products are already on screen and should
-  /// stay there — a search or a pull-to-refresh. In that case the existing
+  /// stay there - a search or a pull-to-refresh. In that case the existing
   /// list is kept and marked busy instead of being replaced by a spinner.
   /// With nothing worth preserving, the loading state is shown as normal.
   Future<void> loadFirstPage({bool showLoading = true}) async {
@@ -132,7 +132,7 @@ class ProductListCubit extends Cubit<ProductListState> {
 
     _query = next;
     _debounce?.cancel();
-    // showLoading: false — results already on screen stay there while the
+    // showLoading: false - results already on screen stay there while the
     // new ones are fetched, so the list does not flash on every keystroke.
     _debounce =
         Timer(_debounceDuration, () => loadFirstPage(showLoading: false));

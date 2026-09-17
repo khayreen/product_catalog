@@ -9,7 +9,7 @@ import '../../data/product_repository.dart';
 /// A plain `Cubit<List<ProductCategory>>` rather than a sealed state,
 /// because this one genuinely has no states worth distinguishing: the
 /// filter bar is chrome. If the categories never arrive, the bar simply
-/// does not appear and everything else still works — so an empty list is a
+/// does not appear and everything else still works - so an empty list is a
 /// perfectly good way to say "nothing to show here".
 class CategoryCubit extends Cubit<List<ProductCategory>> {
   CategoryCubit(this._repository) : super(const <ProductCategory>[]);

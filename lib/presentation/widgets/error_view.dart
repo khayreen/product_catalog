@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// The error state, with the retry the assessment asks for.
 ///
 /// [onRetry] is a callback rather than something this widget decides, so
-/// the same view serves both screens — each hands it the action that
+/// the same view serves both screens - each hands it the action that
 /// re-runs its own request.
 class ErrorView extends StatelessWidget {
   const ErrorView({super.key, required this.message, required this.onRetry});

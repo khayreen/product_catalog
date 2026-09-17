@@ -15,7 +15,7 @@ import 'widgets/product_tile.dart';
 ///
 /// The whole body is one `switch` over [ProductListState]. Because that
 /// class is sealed, the analyzer rejects this file if a state has no
-/// branch — the four required states cannot quietly go missing.
+/// branch - the four required states cannot quietly go missing.
 class ProductListPage extends StatelessWidget {
   const ProductListPage({super.key});
 
@@ -26,7 +26,7 @@ class ProductListPage extends StatelessWidget {
         title: const Text('Products'),
         actions: const [_SortAction()],
         // The field lives in the AppBar, OUTSIDE the BlocBuilder below, so
-        // it is not rebuilt on every state change — which would drop the
+        // it is not rebuilt on every state change - which would drop the
         // keyboard focus mid-word.
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(66),
@@ -100,7 +100,7 @@ class _SortActionState extends State<_SortAction> {
 /// A horizontally scrolling row of category chips, with "All" first.
 ///
 /// Renders nothing at all until the categories arrive, and nothing ever if
-/// they fail — the catalogue still works without it, so an empty bar is
+/// they fail - the catalogue still works without it, so an empty bar is
 /// better than an error in its place.
 class _CategoryBar extends StatefulWidget {
   const _CategoryBar();
@@ -128,8 +128,8 @@ class _CategoryBarState extends State<_CategoryBar> {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              // Platform default physics on purpose — clamping with an edge
-              // glow on Android — so this row feels the same as the product
+              // Platform default physics on purpose - clamping with an edge
+              // glow on Android - so this row feels the same as the product
               // list below it rather than rubber-banding like iOS.
               child: Row(
                 children: [
@@ -270,7 +270,7 @@ class _ProductListViewState extends State<_ProductListView> {
   /// How close to the bottom, in pixels, before the next page is requested.
   static const double _loadMoreThreshold = 400;
 
-  /// How far down before the scroll-to-top button is worth offering —
+  /// How far down before the scroll-to-top button is worth offering -
   /// roughly one screen, far enough not to appear during a small scroll.
   static const double _showTopButtonAfter = 500;
 
@@ -279,7 +279,7 @@ class _ProductListViewState extends State<_ProductListView> {
   /// A [ValueNotifier] rather than `setState`, for two reasons.
   ///
   /// Scroll listeners fire during layout, and calling `setState` there is
-  /// rejected by the framework — so the flag would never flip. And even if
+  /// rejected by the framework - so the flag would never flip. And even if
   /// it worked, `setState` would rebuild the entire list to toggle one
   /// button. This way only the button listens, and only the button rebuilds.
   final ValueNotifier<bool> _showTopButton = ValueNotifier<bool>(false);
@@ -298,7 +298,7 @@ class _ProductListViewState extends State<_ProductListView> {
     super.dispose();
   }
 
-  /// Fires on every scroll frame — dozens of times a second.
+  /// Fires on every scroll frame - dozens of times a second.
   ///
   /// That is deliberate and safe: the widget stays naive and asks every
   /// frame, while [ProductListCubit.loadNextPage] holds the guards that
@@ -355,7 +355,7 @@ class _ProductListViewState extends State<_ProductListView> {
               final product = products[index];
               return ProductTile(
                 product: product,
-                // The route carries only the id — the detail screen fetches
+                // The route carries only the id - the detail screen fetches
                 // its own data rather than trusting what the list holds.
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
@@ -367,7 +367,7 @@ class _ProductListViewState extends State<_ProductListView> {
           ),
         ),
         // Appears only once scrolling far enough that reaching the top by
-        // hand would be tedious — 194 products is a long way back.
+        // hand would be tedious - 194 products is a long way back.
         Align(
           alignment: Alignment.bottomRight,
           child: Padding(
@@ -378,7 +378,7 @@ class _ProductListViewState extends State<_ProductListView> {
                 if (!visible) return const SizedBox.shrink();
                 return child!;
               },
-              // Built once and reused — only its visibility changes.
+              // Built once and reused - only its visibility changes.
               child: FloatingActionButton.small(
                 // No hero tag: this button comes and goes while a route
                 // transition may be running, and the default tag would try

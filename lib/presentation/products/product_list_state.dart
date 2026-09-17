@@ -1,7 +1,7 @@
 import '../../core/failure.dart';
 import '../../data/models/product.dart';
 
-/// Every state the product list can be in — and, because the class is
+/// Every state the product list can be in - and, because the class is
 /// `sealed`, the complete set of them.
 ///
 /// The four states the app must distinguish are not flags checked with `if`
@@ -38,7 +38,7 @@ class ProductListEmpty extends ProductListState {
 /// Products are on screen.
 ///
 /// [isLoadingMore] and [hasReachedEnd] are fields here rather than states of
-/// their own because fetching page three is not a loading state — it is a
+/// their own because fetching page three is not a loading state - it is a
 /// success that happens to be busy. That is what keeps the list visible and
 /// scrollable while the footer spinner turns.
 class ProductListSuccess extends ProductListState {
@@ -53,7 +53,7 @@ class ProductListSuccess extends ProductListState {
   final bool isLoadingMore;
   final bool hasReachedEnd;
 
-  /// A new first page is on its way — a search, or a refresh — while these
+  /// A new first page is on its way - a search, or a refresh - while these
   /// products stay on screen.
   ///
   /// The third loading moment, and it needs its own treatment: replacing the

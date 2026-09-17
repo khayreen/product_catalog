@@ -25,7 +25,7 @@ class ProductCatalogApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // RepositoryProvider sits ABOVE MaterialApp deliberately. MaterialApp
     // owns the Navigator, and a pushed route is a sibling of `home`, not a
-    // child — a provider inside `home` would be invisible to the detail
+    // child - a provider inside `home` would be invisible to the detail
     // screen in step 10.
     return RepositoryProvider<ProductRepository>.value(
       value: repository,
@@ -58,7 +58,7 @@ class ProductCatalogApp extends StatelessWidget {
 /// Lets a mouse and a trackpad drag scrollable areas, not just touch.
 ///
 /// Flutter's default only accepts touch and stylus drags. That is right on a
-/// physical phone, but an emulator delivers your drags as mouse events — so
+/// physical phone, but an emulator delivers your drags as mouse events - so
 /// the horizontal category bar looks frozen there, and on the web build,
 /// while working perfectly on a real device. Widening the set makes the app
 /// behave the same everywhere it runs.

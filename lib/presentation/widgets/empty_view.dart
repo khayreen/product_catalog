@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// The empty state: the request worked, there was nothing to show.
 ///
-/// Visually calmer than [ErrorView] on purpose — no error colour, no
+/// Visually calmer than [ErrorView] on purpose - no error colour, no
 /// retry. Nothing went wrong, so nothing here should suggest it did.
 class EmptyView extends StatelessWidget {
   const EmptyView({super.key, required this.message});

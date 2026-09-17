@@ -14,7 +14,7 @@ import 'product_detail_state.dart';
 /// It takes only an id, not a [Product]: the screen fetches its own data, so
 /// it does not depend on the list having already loaded that product. The
 /// cubit is built here, reading the repository the app provided above
-/// [MaterialApp] — which is why a pushed route can still reach it.
+/// [MaterialApp] - which is why a pushed route can still reach it.
 class ProductDetailPage extends StatelessWidget {
   const ProductDetailPage({super.key, required this.productId});
 

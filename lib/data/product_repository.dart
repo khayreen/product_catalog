@@ -25,7 +25,7 @@ class ProductRepository {
   /// choice is made here, once, and everything above this line paginates
   /// identically no matter which of the three is running.
   ///
-  /// Precedence: a non-empty [query] wins over [category] — searching is
+  /// Precedence: a non-empty [query] wins over [category] - searching is
   /// understood as looking across the whole catalogue, not within the
   /// current filter.
   ///

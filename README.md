@@ -13,7 +13,7 @@ flutter pub get
 flutter run
 ```
 
-No API key or `.env` file is needed — DummyJSON is public.
+No API key or `.env` file is needed - DummyJSON is public.
 
 ```bash
 flutter test       # unit tests
@@ -49,7 +49,7 @@ Two rules hold the boundaries in place:
 - **Nothing in `data/models/` imports Flutter.** That keeps the data layer
   independent of the UI and testable without a widget harness.
 
-Dependencies are assembled once in `main.dart` and passed down — no service
+Dependencies are assembled once in `main.dart` and passed down - no service
 locator, no global state.
 
 ### State management
@@ -74,7 +74,7 @@ class ProductListSuccess extends ProductListState {
 ```
 
 The screen body is a single `switch` over that type. Because the class is
-sealed, the analyzer rejects the file if any state has no branch — a missing
+sealed, the analyzer rejects the file if any state has no branch - a missing
 state is a build error rather than a blank screen found in review.
 
 `isLoadingMore`, `hasReachedEnd` and `isBusy` are fields of the success state
@@ -85,9 +85,9 @@ There are **three loading moments**, and each gets its own treatment:
 
 | Moment | Treatment |
 |---|---|
-| First fetch | `ProductListLoading` — a centred spinner owning the screen |
-| Loading another page | `isLoadingMore` — a small footer indicator; the list stays |
-| Searching or refreshing with results already up | `isBusy` — a hairline bar under the search field; nothing moves |
+| First fetch | `ProductListLoading` - a centred spinner owning the screen |
+| Loading another page | `isLoadingMore` - a small footer indicator; the list stays |
+| Searching or refreshing with results already up | `isBusy` - a hairline bar under the search field; nothing moves |
 
 The third one matters more than it looks. Modelling it as `ProductListLoading`
 would replace the list on every keystroke, which makes a search that works
@@ -99,7 +99,7 @@ perfectly well feel broken.
 `/products`, `/products/search` and `/products/category/{slug}` all return the
 same `{products, total, skip, limit}` envelope and all accept `sortBy` and
 `order`. So `ProductRepository.loadPage` picks the endpoint and everything
-above it paginates identically no matter which is running — one code path, one
+above it paginates identically no matter which is running - one code path, one
 scroll controller, one set of guards.
 
 Doing any of it client-side would only have filtered the 20 products already
@@ -121,7 +121,7 @@ a screen that does not depend on another screen's state.
 
 **A failed *additional* page does not clear the list.** A first-page failure is
 an error state with a retry. A page-five failure drops back to the products
-already on screen — losing 80 products the user is reading because one later
+already on screen - losing 80 products the user is reading because one later
 page timed out would be worse than the failure itself.
 
 **Pagination stops using the API's `total`.** `ProductPage` keeps `total` so
@@ -138,16 +138,16 @@ converting to `double`. Dart decodes `5` as `int` and `9.99` as `double`, so
 
 ## Tests
 
-`test/data/product_repository_test.dart` covers the repository — the layer
+`test/data/product_repository_test.dart` covers the repository - the layer
 holding the architectural decisions:
 
 - **endpoint routing**: an empty query browses, a category filters, a query
   searches (and overrides the filter), sorting adds `sortBy`/`order`, and
-  `skip` passes through unchanged — the proof that search and browse share one
+  `skip` passes through unchanged - the proof that search and browse share one
   paging path
 - **failure translation**: connection error → `NetworkFailure`, HTTP error →
   `ServerFailure` carrying the status code, parse error → `UnknownFailure`
-- **a cancellation is `RequestCancelled` and not a `Failure`** — if that ever
+- **a cancellation is `RequestCancelled` and not a `Failure`** - if that ever
   regressed, every keystroke during a search would flash an error state
 
 The whole class is testable with no network and no HTTP stubbing because
@@ -164,7 +164,7 @@ its `ProductApi` the same way.
       should use `intl` with the device locale, and the currency ought to come
       from the data rather than the widget.
 - [ ] The detail screen shows a single image rather than a gallery, and
-      refetches on every tap — no caching.
+      refetches on every tap - no caching.
 - [ ] If a search returns fewer results than fill the screen, the scroll
       listener never fires, so any further pages are unreachable. Not visible
       with DummyJSON's data, but wrong.
@@ -174,7 +174,7 @@ its `ProductApi` the same way.
 
 I used Claude (Claude Code) as an assistant throughout this assessment. I
 chose the stack, set the project structure, and made the calls on scope and
-on each architectural decision documented above — the layer boundaries, the
+on each architectural decision documented above - the layer boundaries, the
 sealed-class state modelling, server-side search, and passing an id rather
 than an object between screens. The assistant helped me plan those decisions
 and generated much of the implementation code, which I placed into the

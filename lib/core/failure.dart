@@ -1,6 +1,6 @@
 /// What the UI is allowed to know about a failed request.
 ///
-/// The presentation layer never sees a DioException or a status code — it
+/// The presentation layer never sees a DioException or a status code - it
 /// sees one of these, with a message already written for a person.
 sealed class Failure implements Exception {
   const Failure(this.message);
@@ -30,7 +30,7 @@ class UnknownFailure extends Failure {
 
 /// Not a failure the user should ever see.
 ///
-/// The app abandoned this request itself because a newer one replaced it —
+/// The app abandoned this request itself because a newer one replaced it -
 /// which is what the debounced search does on every keystroke. Showing an
 /// error state for it would be a bug, so it is deliberately not a [Failure].
 class RequestCancelled implements Exception {
