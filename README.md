@@ -159,8 +159,10 @@ its `ProductApi` the same way.
 - [ ] Only the data layer is tested; no widget tests.
 - [ ] A failed additional page fails silently: the footer spinner stops and
       nothing is said. It should show a message with a retry.
-- [ ] Prices are formatted with a hard-coded `$`. Should use `intl` and the
-      device locale.
+- [ ] Prices are prefixed with a hard-coded `RM`. The API does not state a
+      currency, so this is a display assumption rather than a conversion. It
+      should use `intl` with the device locale, and the currency ought to come
+      from the data rather than the widget.
 - [ ] The detail screen shows a single image rather than a gallery, and
       refetches on every tap — no caching.
 - [ ] If a search returns fewer results than fill the screen, the scroll
