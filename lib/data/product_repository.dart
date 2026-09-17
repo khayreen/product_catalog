@@ -101,14 +101,12 @@ class ProductRepository {
   }
 
   Exception _translate(DioException error) => switch (error.type) {
-        DioExceptionType.cancel => const RequestCancelled(),
-        DioExceptionType.connectionTimeout ||
-        DioExceptionType.sendTimeout ||
-        DioExceptionType.receiveTimeout ||
-        DioExceptionType.connectionError =>
-          const NetworkFailure(),
-        DioExceptionType.badResponse =>
-          ServerFailure(error.response?.statusCode),
-        _ => const UnknownFailure(),
-      };
+    DioExceptionType.cancel => const RequestCancelled(),
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout ||
+    DioExceptionType.connectionError => const NetworkFailure(),
+    DioExceptionType.badResponse => ServerFailure(error.response?.statusCode),
+    _ => const UnknownFailure(),
+  };
 }

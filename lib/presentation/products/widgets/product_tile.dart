@@ -46,9 +46,10 @@ class ProductTile extends StatelessWidget {
         padding: const EdgeInsets.only(top: 4),
         child: Row(
           children: [
-            // TODO(izzah): format per locale with `intl` instead of a hard $.
+            // TODO(izzah): format with `intl` and the device locale rather
+            // than a hard-coded prefix.
             Text(
-              '\$${product.price.toStringAsFixed(2)}',
+              'RM ${product.price.toStringAsFixed(2)}',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.w600,

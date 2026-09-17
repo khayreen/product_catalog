@@ -47,15 +47,15 @@ class ProductListPage extends StatelessWidget {
                 return switch (state) {
                   ProductListLoading() => const LoadingView(),
                   ProductListError(:final failure) => ErrorView(
-                      message: failure.message,
-                      onRetry: () =>
-                          context.read<ProductListCubit>().loadFirstPage(),
-                    ),
+                    message: failure.message,
+                    onRetry: () =>
+                        context.read<ProductListCubit>().loadFirstPage(),
+                  ),
                   ProductListEmpty(:final query) => EmptyView(
-                      message: query.isEmpty
-                          ? 'Nothing here. Try another category.'
-                          : 'No products match "$query".',
-                    ),
+                    message: query.isEmpty
+                        ? 'Nothing here. Try another category.'
+                        : 'No products match "$query".',
+                  ),
                   ProductListSuccess() => _ProductListView(state: state),
                 };
               },
@@ -88,15 +88,10 @@ class _SortActionState extends State<_SortAction> {
       tooltip: _enabled ? 'Sorted by rating' : 'Sort by rating',
       isSelected: _enabled,
       icon: const Icon(Icons.star_border_rounded),
-      selectedIcon: Icon(
-        Icons.star_rounded,
-        color: theme.colorScheme.tertiary,
-      ),
+      selectedIcon: Icon(Icons.star_rounded, color: theme.colorScheme.tertiary),
       onPressed: () {
         setState(() => _enabled = !_enabled);
-        context
-            .read<ProductListCubit>()
-            .setSortByRating(enabled: _enabled);
+        context.read<ProductListCubit>().setSortByRating(enabled: _enabled);
       },
     );
   }
@@ -276,12 +271,18 @@ class _ProductListViewState extends State<_ProductListView> {
   static const double _loadMoreThreshold = 400;
 
   /// How far down before the scroll-to-top button is worth offering —
-  /// roughly two screens, so it never appears during ordinary browsing.
-  static const double _showTopButtonAfter = 1200;
+  /// roughly one screen, far enough not to appear during a small scroll.
+  static const double _showTopButtonAfter = 500;
 
   final ScrollController _controller = ScrollController();
 
-  bool _showTopButton = false;
+  /// A [ValueNotifier] rather than `setState`, for two reasons.
+  ///
+  /// Scroll listeners fire during layout, and calling `setState` there is
+  /// rejected by the framework — so the flag would never flip. And even if
+  /// it worked, `setState` would rebuild the entire list to toggle one
+  /// button. This way only the button listens, and only the button rebuilds.
+  final ValueNotifier<bool> _showTopButton = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -293,6 +294,7 @@ class _ProductListViewState extends State<_ProductListView> {
   void dispose() {
     _controller.removeListener(_onScroll);
     _controller.dispose();
+    _showTopButton.dispose();
     super.dispose();
   }
 
@@ -309,13 +311,10 @@ class _ProductListViewState extends State<_ProductListView> {
       context.read<ProductListCubit>().loadNextPage();
     }
 
-    // Only rebuild when the answer actually changes — this runs on every
-    // scroll frame, so calling setState unconditionally would rebuild the
-    // whole list dozens of times a second.
-    final shouldShow = position.pixels > _showTopButtonAfter;
-    if (shouldShow != _showTopButton) {
-      setState(() => _showTopButton = shouldShow);
-    }
+    // A ValueNotifier only notifies when the value actually changes, so
+    // assigning on every scroll frame costs nothing when the answer is the
+    // same as last frame.
+    _showTopButton.value = position.pixels > _showTopButtonAfter;
   }
 
   void _scrollToTop() {
@@ -338,13 +337,16 @@ class _ProductListViewState extends State<_ProductListView> {
           // new page has actually arrived, rather than snapping away.
           onRefresh: () => context.read<ProductListCubit>().refresh(),
           child: ListView.separated(
-        controller: _controller,
+            controller: _controller,
             // Lets the gesture start even when the list is too short to
             // scroll, which is the case after a narrow search.
             physics: const AlwaysScrollableScrollPhysics(),
             itemCount: products.length + (showFooter ? 1 : 0),
             separatorBuilder: (context, index) =>
                 const Divider(height: 1, indent: 88),
+            // Room at the bottom so the last row is not sitting under the
+            // scroll-to-top button.
+            padding: const EdgeInsets.only(bottom: 76),
             itemBuilder: (context, index) {
               if (index >= products.length) {
                 return const _LoadMoreFooter();
@@ -366,17 +368,26 @@ class _ProductListViewState extends State<_ProductListView> {
         ),
         // Appears only once scrolling far enough that reaching the top by
         // hand would be tedious — 194 products is a long way back.
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: AnimatedScale(
-            scale: _showTopButton ? 1 : 0,
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOutBack,
-            child: FloatingActionButton.small(
-              onPressed: _scrollToTop,
-              tooltip: 'Back to top',
-              child: const Icon(Icons.arrow_upward_rounded),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _showTopButton,
+              builder: (context, visible, child) {
+                if (!visible) return const SizedBox.shrink();
+                return child!;
+              },
+              // Built once and reused — only its visibility changes.
+              child: FloatingActionButton.small(
+                // No hero tag: this button comes and goes while a route
+                // transition may be running, and the default tag would try
+                // to animate it across screens.
+                heroTag: null,
+                onPressed: _scrollToTop,
+                tooltip: 'Back to top',
+                child: const Icon(Icons.arrow_upward_rounded),
+              ),
             ),
           ),
         ),

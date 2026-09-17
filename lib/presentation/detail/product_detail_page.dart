@@ -96,8 +96,8 @@ class _DetailBody extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    // TODO(izzah): format per locale with `intl`.
-                    '\$${product.price.toStringAsFixed(2)}',
+                    // TODO(izzah): format with `intl` and the device locale.
+                    'RM ${product.price.toStringAsFixed(2)}',
                     style: theme.textTheme.titleLarge?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w700,
